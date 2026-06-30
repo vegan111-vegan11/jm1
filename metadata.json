@@ -1,0 +1,6 @@
+{
+  "name": "Jeju Magazine",
+  "description": "A trendy, premium editorial Jeju Island magazine and media platform featuring journalist publication, AI-powered Jeju travel planning, high-fidelity AI imagery, text-to-speech narration, and advertiser matching.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
