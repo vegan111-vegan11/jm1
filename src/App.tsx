@@ -217,10 +217,10 @@ export default function App() {
           </div>
 
           {/* Luxury Navigation Menu (Fully localized in Korean as requested) */}
-          <nav className="flex flex-wrap justify-center gap-1 bg-stone-100 p-1.5 rounded-2xl border border-stone-200/50">
+          <nav className="flex overflow-x-auto lg:flex-wrap scrollbar-none max-w-full lg:justify-center gap-1.5 bg-stone-100 p-1.5 rounded-2xl border border-stone-200/50 flex-nowrap shrink-0 select-none">
             <button
               onClick={() => setActiveTab("journal")}
-              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all shrink-0 whitespace-nowrap active:scale-[0.97] ${
                 activeTab === "journal"
                   ? "bg-white text-stone-950 shadow-md font-extrabold"
                   : "text-stone-500 hover:text-stone-900 hover:bg-stone-50"
@@ -232,7 +232,7 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab("platform")}
-              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all shrink-0 whitespace-nowrap active:scale-[0.97] ${
                 activeTab === "platform"
                   ? "bg-white text-stone-950 shadow-md font-extrabold"
                   : "text-stone-500 hover:text-stone-900 hover:bg-stone-50"
@@ -244,7 +244,7 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab("advertiser")}
-              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all shrink-0 whitespace-nowrap active:scale-[0.97] ${
                 activeTab === "advertiser"
                   ? "bg-white text-stone-950 shadow-md font-extrabold"
                   : "text-stone-500 hover:text-stone-900 hover:bg-stone-50"
@@ -256,7 +256,7 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab("guide")}
-              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all shrink-0 whitespace-nowrap active:scale-[0.97] ${
                 activeTab === "guide"
                   ? "bg-white text-stone-950 shadow-md font-extrabold"
                   : "text-stone-500 hover:text-stone-900 hover:bg-stone-50"
@@ -268,7 +268,7 @@ export default function App() {
 
             <button
               onClick={() => setActiveTab("rag")}
-              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all ${
+              className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all shrink-0 whitespace-nowrap active:scale-[0.97] ${
                 activeTab === "rag"
                   ? "bg-white text-stone-950 shadow-md font-extrabold"
                   : "text-stone-500 hover:text-stone-900 hover:bg-stone-50"
@@ -282,7 +282,7 @@ export default function App() {
             {user.isLoggedIn && user.role === "admin" && (
               <button
                 onClick={() => setActiveTab("admin")}
-                className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all border-l border-stone-200 pl-4 ${
+                className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all border-l border-stone-200 pl-4 shrink-0 whitespace-nowrap active:scale-[0.97] ${
                   activeTab === "admin"
                     ? "bg-stone-950 text-white shadow-md font-extrabold"
                     : "text-rose-600 hover:bg-rose-50"

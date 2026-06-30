@@ -425,22 +425,22 @@ export default function RagSection() {
         <div className="lg:col-span-8 flex flex-col bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-sm min-h-[580px]">
           
           {/* Interaction Header tabs */}
-          <div className="bg-stone-50 border-b border-stone-200/80 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="bg-amber-500 text-stone-950 p-2 rounded-xl">
+          <div className="bg-stone-50 border-b border-stone-200/80 px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-2.5">
+              <div className="bg-amber-500 text-stone-950 p-2.5 rounded-xl shrink-0">
                 <Brain size={16} />
               </div>
               <div>
-                <h3 className="font-serif font-black text-sm text-stone-900 leading-tight">RAG 로컬 지식 탐색 엔진</h3>
-                <p className="text-[10.5px] text-stone-500 font-mono leading-none mt-1">Knowledge Grounding Base v2.1</p>
+                <h3 className="font-serif font-black text-xs md:text-sm text-stone-900 leading-tight">RAG 로컬 지식 탐색 엔진</h3>
+                <p className="text-[9.5px] md:text-[10.5px] text-stone-500 font-mono leading-none mt-1">Knowledge Grounding Base v2.1</p>
               </div>
             </div>
 
-            {/* Custom Tab Toggles */}
-            <div className="flex bg-stone-200/60 p-1 rounded-xl border border-stone-200 shrink-0">
+            {/* Custom Tab Toggles - horizontal scrollable on mobile */}
+            <div className="flex overflow-x-auto scrollbar-none bg-stone-200/60 p-1 rounded-xl border border-stone-200 shrink-0 select-none">
               <button
                 onClick={() => setActiveSubTab("chat")}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-[10.5px] md:text-[11px] font-bold transition-all whitespace-nowrap active:scale-[0.98] ${
                   activeSubTab === "chat"
                     ? "bg-white text-stone-950 shadow-sm"
                     : "text-stone-500 hover:text-stone-900"
@@ -451,7 +451,7 @@ export default function RagSection() {
               </button>
               <button
                 onClick={() => setActiveSubTab("search")}
-                className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-[10.5px] md:text-[11px] font-bold transition-all whitespace-nowrap active:scale-[0.98] ${
                   activeSubTab === "search"
                     ? "bg-white text-stone-950 shadow-sm"
                     : "text-stone-500 hover:text-stone-900"
@@ -573,47 +573,55 @@ export default function RagSection() {
                 </div>
               )}
 
-              {/* Quick Prompt Suggestion Rails */}
-              {chatMessages.length === 1 && (
-                <div className="px-6 py-2 flex flex-wrap gap-2">
-                  <span className="text-[9.5px] text-stone-400 font-bold self-center">추천 질문:</span>
-                  <button 
-                    onClick={() => handleQuickQuestion("구좌읍 평대리 조용한 모카포트 드립커피 바 위치 알려줘")}
-                    className="text-[10px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1 rounded-full transition-colors border border-stone-200/40"
-                  >
-                    ☕ 평대리 모카포트 커피점 찾기
-                  </button>
-                  <button 
-                    onClick={() => handleQuickQuestion("비가 막 그친 직후에 비자림을 걸으면 어떤 기분을 느낄 수 있나요?")}
-                    className="text-[10px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1 rounded-full transition-colors border border-stone-200/40"
-                  >
-                    🌲 비 내린 뒤의 비자림 정서
-                  </button>
-                  <button 
-                    onClick={() => handleQuickQuestion("평대리 밭담과 겨울 당근 수확 시기가 궁금해요")}
-                    className="text-[10px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1 rounded-full transition-colors border border-stone-200/40"
-                  >
-                    🥕 구좌 당근과 전통 밭담 역사
-                  </button>
-                </div>
-              )}
+              {/* Quick Prompt Suggestion Rails - horizontally scrollable and always available */}
+              <div className="px-4 py-2 border-t border-stone-100 bg-stone-50/30 flex items-center space-x-2 overflow-x-auto scrollbar-none select-none">
+                <span className="text-[9.5px] text-stone-400 font-bold shrink-0">추천 키워드 Chips:</span>
+                <button 
+                  type="button"
+                  onClick={() => handleQuickQuestion("구좌읍 평대리 조용한 모카포트 드립커피 바 위치 알려줘")}
+                  className="text-[10px] bg-white hover:bg-stone-100 text-stone-700 px-3 py-1.5 rounded-full transition-all border border-stone-200/80 shrink-0 shadow-sm active:scale-[0.96]"
+                >
+                  ☕ 평대 모카포트 커피바
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleQuickQuestion("비가 막 그친 직후에 비자림을 걸으면 어떤 기분을 느낄 수 있나요?")}
+                  className="text-[10px] bg-white hover:bg-stone-100 text-stone-700 px-3 py-1.5 rounded-full transition-all border border-stone-200/80 shrink-0 shadow-sm active:scale-[0.96]"
+                >
+                  🌲 우후(雨後) 비자림 숲길
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleQuickQuestion("평대리 밭담과 겨울 당근 수확 시기가 궁금해요")}
+                  className="text-[10px] bg-white hover:bg-stone-100 text-stone-700 px-3 py-1.5 rounded-full transition-all border border-stone-200/80 shrink-0 shadow-sm active:scale-[0.96]"
+                >
+                  🥕 겨울 당근과 밭담 역사
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleQuickQuestion("제주 오조리 철새도래지 탐방 산책코스 추천해줘")}
+                  className="text-[10px] bg-white hover:bg-stone-100 text-stone-700 px-3 py-1.5 rounded-full transition-all border border-stone-200/80 shrink-0 shadow-sm active:scale-[0.96]"
+                >
+                  🦆 오조리 식산봉 산책로
+                </button>
+              </div>
 
               {/* Chat Send Form */}
-              <form onSubmit={handleRagChatSend} className="p-4 border-t border-stone-100 bg-stone-50/50 flex items-center space-x-2">
+              <form onSubmit={handleRagChatSend} className="p-3 md:p-4 border-t border-stone-150 bg-stone-50/50 flex items-center space-x-2">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder={isChatLoading ? "답변 인덱스 검색 중..." : "제주 로컬 문헌에 대해 궁금한 팩트를 질문하세요..."}
+                  placeholder={isChatLoading ? "지식 Chunks 탐색 중..." : "제주 로컬 문헌에 대해 질문하세요..."}
                   disabled={isChatLoading}
-                  className="flex-grow bg-white border border-stone-200 focus:outline-none focus:border-amber-500 rounded-xl px-4 py-3 text-xs"
+                  className="flex-grow bg-white border border-stone-200 focus:outline-none focus:border-amber-500 rounded-xl px-4 py-3.5 text-xs focus:ring-1 focus:ring-amber-500/20"
                 />
                 <button
                   type="submit"
                   disabled={isChatLoading || !chatInput.trim()}
-                  className="bg-stone-950 text-white p-3 rounded-xl disabled:opacity-40 hover:bg-stone-900 transition-colors shrink-0"
+                  className="bg-stone-950 text-white p-3.5 rounded-xl disabled:bg-stone-100 disabled:text-stone-300 hover:bg-stone-900 transition-all shrink-0 active:scale-[0.96] shadow-md"
                 >
-                  <Send size={14} />
+                  <Send size={15} />
                 </button>
               </form>
 

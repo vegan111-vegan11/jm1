@@ -97,21 +97,24 @@ export default function AdvertiserSection({ onImageGenerated }: AdvertiserSectio
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Left Menu / Header Guide */}
-      <div className="lg:col-span-3 bg-stone-50 border border-stone-100 p-6 rounded-2xl space-y-4">
-        <h3 className="text-xs font-bold tracking-[0.2em] text-stone-400 font-display">
-          ADVERTISER CENTER
-        </h3>
-        <p className="text-stone-500 text-xs leading-relaxed">
-          제주 최고의 감성 매거진 플랫폼에서 귀사의 브랜드 가치를 고취시켜 보세요. 트렌디한 타깃 독자들과 완벽히 연결해 드립니다.
-        </p>
+      <div className="lg:col-span-3 bg-stone-50 border border-stone-100 p-4 md:p-6 rounded-2xl space-y-3 lg:space-y-4">
+        <div className="hidden lg:block space-y-2">
+          <h3 className="text-xs font-bold tracking-[0.2em] text-stone-400 font-display">
+            ADVERTISER CENTER
+          </h3>
+          <p className="text-stone-500 text-xs leading-relaxed">
+            제주 최고의 감성 매거진 플랫폼에서 귀사의 브랜드 가치를 고취시켜 보세요. 트렌디한 타깃 독자들과 완벽히 연결해 드립니다.
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-1 pt-4">
+        {/* Horizontal scrollable on mobile, vertical list on desktop */}
+        <div className="flex lg:flex-col overflow-x-auto scrollbar-none gap-1.5 pb-1 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
           <button
             onClick={() => setActiveSubTab("partnership")}
-            className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wider font-display transition-all ${
+            className={`flex items-center space-x-2.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider font-display transition-all whitespace-nowrap shrink-0 active:scale-[0.98] ${
               activeSubTab === "partnership"
                 ? "bg-stone-950 text-white shadow-md shadow-stone-900/10"
-                : "text-stone-600 hover:bg-stone-100/80"
+                : "text-stone-600 hover:bg-stone-100/85 bg-stone-100/40 lg:bg-transparent"
             }`}
           >
             <FileText size={14} />
@@ -120,10 +123,10 @@ export default function AdvertiserSection({ onImageGenerated }: AdvertiserSectio
 
           <button
             onClick={() => setActiveSubTab("generator")}
-            className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-xs font-semibold tracking-wider font-display transition-all ${
+            className={`flex items-center space-x-2.5 px-4 py-3 rounded-xl text-xs font-semibold tracking-wider font-display transition-all whitespace-nowrap shrink-0 active:scale-[0.98] ${
               activeSubTab === "generator"
                 ? "bg-stone-950 text-white shadow-md shadow-stone-900/10"
-                : "text-stone-600 hover:bg-stone-100/80"
+                : "text-stone-600 hover:bg-stone-100/85 bg-stone-100/40 lg:bg-transparent"
             }`}
           >
             <Sparkles size={14} />

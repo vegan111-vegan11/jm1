@@ -35,6 +35,7 @@ let articles = [
     imageUrl: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80",
     readTime: "3분",
     likes: 24,
+    views: 312,
     createdAt: new Date(Date.now() - 3600000 * 4).toISOString(), // 4 hours ago
     tags: ["구좌읍", "평대리", "모카포트", "감성카페"],
     places: [
@@ -55,6 +56,7 @@ let articles = [
     imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
     readTime: "5분",
     likes: 42,
+    views: 489,
     createdAt: new Date(Date.now() - 3600000 * 24).toISOString(), // 1 day ago
     tags: ["차귀도", "친환경스테이", "한옥스테이", "제로웨이스트"],
     places: [
@@ -75,6 +77,7 @@ let articles = [
     imageUrl: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80",
     readTime: "4분",
     likes: 18,
+    views: 243,
     createdAt: new Date(Date.now() - 3600000 * 48).toISOString(), // 2 days ago
     tags: ["안덕면", "독립서점", "사색의시간", "로컬책방"],
     places: [
@@ -95,6 +98,7 @@ let articles = [
     imageUrl: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=1200&q=80",
     readTime: "4분",
     likes: 31,
+    views: 395,
     createdAt: new Date(Date.now() - 3600000 * 72).toISOString(), // 3 days ago
     tags: ["함덕서우봉", "투명카약", "업사이클링", "에코액티비티"],
     places: [
@@ -104,6 +108,14 @@ let articles = [
       { id: "com-4", author: "에코라이프", text: "단순히 노는 것을 넘어서 제주 환경에 조금이나마 보탬이 된다는 게 매력적이에요.", createdAt: new Date(Date.now() - 3600000 * 60).toISOString() }
     ]
   }
+];
+
+// List of officially registered active editors/journalists
+let registeredEditors = [
+  { id: "reg-ed-1", name: "김지민 에디터", email: "jimin.jeju@jejumagazine.com", specialty: "Gastronomy", avatar: "🍊", status: "Active", bio: "평대리 당근밭과 구좌 모카포트 드립 바의 정수를 취재하는 제주 토박이 에디터입니다.", articlesCount: 1, likesReceived: 24, createdAt: new Date(Date.now() - 3600000 * 200).toISOString() },
+  { id: "reg-ed-2", name: "박서연 에디터", email: "seoyeon.eco@jejumagazine.com", specialty: "Stay", avatar: "⛰️", status: "Active", bio: "차귀도와 협재 바다를 정화하고 제로웨이스트 스테이를 직접 탐방하는 친환경 에디터입니다.", articlesCount: 1, likesReceived: 42, createdAt: new Date(Date.now() - 3600000 * 180).toISOString() },
+  { id: "reg-ed-3", name: "최도현 객원기자", email: "dohyeon.book@gmail.com", specialty: "Culture", avatar: "🌊", status: "Active", bio: "안덕면 처마 끝 서가를 사랑하는 독립 도서관 및 현대적 아키텍처 비평가입니다.", articlesCount: 1, likesReceived: 18, createdAt: new Date(Date.now() - 3600000 * 120).toISOString() },
+  { id: "reg-ed-4", name: "이수아 에디터", email: "sua.eco@naver.com", specialty: "Activity", avatar: "🐴", status: "Active", bio: "함덕의 물때에 맞춰 바다 유리를 줍고 카약 노를 젓는 해양 업사이클 아카이버입니다.", articlesCount: 1, likesReceived: 31, createdAt: new Date(Date.now() - 3600000 * 90).toISOString() }
 ];
 
 let advertiserInquiries: any[] = [
@@ -165,6 +177,7 @@ app.post("/api/articles", (req, res) => {
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1200&q=80",
       readTime: readTime || "3분",
       likes: 0,
+      views: Math.floor(Math.random() * 50) + 25, // Randomized initial views
       createdAt: new Date().toISOString(),
       tags: tags || [],
       places: places || [],
@@ -172,7 +185,45 @@ app.post("/api/articles", (req, res) => {
     };
 
     articles.unshift(newArticle);
+
+    // Increment journalist's article count if registered
+    const editor = registeredEditors.find(e => e.name === author || author.includes(e.name) || e.name.includes(author));
+    if (editor) {
+      editor.articlesCount += 1;
+    }
+
     res.json({ success: true, article: newArticle });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Update Article (Journalist edit with tags and places)
+app.put("/api/articles/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, category, categoryKo, author, content, excerpt, imageUrl, readTime, tags, places } = req.body;
+
+    const idx = articles.findIndex(a => a.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, message: "Article not found." });
+    }
+
+    articles[idx] = {
+      ...articles[idx],
+      title: title || articles[idx].title,
+      category: category || articles[idx].category,
+      categoryKo: categoryKo || articles[idx].categoryKo,
+      author: author || articles[idx].author,
+      content: content || articles[idx].content,
+      excerpt: excerpt || articles[idx].excerpt,
+      imageUrl: imageUrl || articles[idx].imageUrl,
+      readTime: readTime || articles[idx].readTime,
+      tags: tags || articles[idx].tags || [],
+      places: places || articles[idx].places || []
+    };
+
+    res.json({ success: true, article: articles[idx] });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -345,7 +396,7 @@ app.post("/api/admin/advertisers/:id/status", (req, res) => {
   }
 });
 
-// API: Update Editor status (Admin approval)
+// API: Update Editor status (Admin approval) and register them as official journalists
 app.post("/api/admin/editors/:id/status", (req, res) => {
   try {
     const { id } = req.params;
@@ -357,8 +408,115 @@ app.post("/api/admin/editors/:id/status", (req, res) => {
     }
 
     editorApplications[idx].status = status || "approved";
+
+    // If approved, add to registeredEditors roster
+    if (status === "approved") {
+      const app = editorApplications[idx];
+      const avatars = ["🍊", "🌊", "⛰️", "🐚", "🐴"];
+      const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+      
+      const newEditor = {
+        id: `reg-ed-${Date.now()}`,
+        name: `${app.name} 에디터`,
+        email: app.email,
+        specialty: app.specialty || "General",
+        avatar: randomAvatar,
+        status: "Active",
+        bio: app.bio,
+        articlesCount: 0,
+        likesReceived: 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Prevent duplicates
+      if (!registeredEditors.some(re => re.email === app.email)) {
+        registeredEditors.unshift(newEditor);
+      }
+    }
+
     res.json({ success: true, application: editorApplications[idx] });
   } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Get Registered Journalists (Active List)
+app.get("/api/admin/editors", (req, res) => {
+  res.json({ success: true, editors: registeredEditors });
+});
+
+// API: Toggle Journalist active/on-hold status
+app.post("/api/admin/editors/:id/toggle", (req, res) => {
+  try {
+    const { id } = req.params;
+    const idx = registeredEditors.findIndex(e => e.id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, message: "Journalist not found." });
+    }
+    registeredEditors[idx].status = registeredEditors[idx].status === "Active" ? "On-Hold" : "Active";
+    res.json({ success: true, editor: registeredEditors[idx] });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Retire/Delete registered journalist
+app.delete("/api/admin/editors/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    registeredEditors = registeredEditors.filter(e => e.id !== id);
+    res.json({ success: true, message: "Journalist retired successfully from active pool." });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// API: Gemini 3.5-flash AI Proofreading & SEO Keyword Extraction
+app.post("/api/ai/proofread", async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    if (!content) {
+      return res.status(400).json({ success: false, message: "Content to proofread is required." });
+    }
+
+    const prompt = `제주 로컬 잡지 기사를 교정, 퇴고하고 SEO 분석을 해주는 수석 에디터 역할을 맡으세요.
+사용자가 작성한 기사의 가안을 검토하여:
+1. 맞춤법과 띄어쓰기를 완벽하게 교정한 다듬어진 세련된 감성 한글 본문 (contentProofread)
+2. 검색 유입이 잘 되고 시선을 끄는 감성적이고 세련된 수정 헤드라인 제목 (titleSuggested)
+3. 기사 내용에서 자동 추출한 어울리는 SEO 인스타그램 스타일 한글 해시태그 4개 (tagsSuggested - 배열 형식)
+4. 어떤 부분을 중점적으로 왜 교정했는지에 대한 짤막하고 전문적인 2줄짜리 에디터 피드백 (feedback)
+
+를 분석하여 아래 JSON 포맷으로 응답하세요. 잡담은 절대 출력하지 말고 정확히 JSON만 반환해 주세요.
+
+---
+원문 제목: ${title || "미지정"}
+원문 본문: ${content}
+---
+
+JSON 출력 스키마:
+{
+  "titleSuggested": "세련된 헤드라인 추천",
+  "contentProofread": "교정된 본문 텍스트",
+  "tagsSuggested": ["키워드1", "키워드2", "키워드3", "키워드4"],
+  "feedback": "에디터 퇴고 코멘트 요약"
+}`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: [{ parts: [{ text: prompt }] }],
+      config: {
+        responseMimeType: "application/json",
+        temperature: 0.3
+      }
+    });
+
+    const parsed = JSON.parse(response.text || "{}");
+    res.json({
+      success: true,
+      result: parsed
+    });
+  } catch (error: any) {
+    console.error("AI Proofread error:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -555,7 +713,8 @@ app.get("/api/admin/stats", (req, res) => {
       advertisersCount: advertiserInquiries.length,
       editorsCount: editorApplications.length,
       advertiserInquiries,
-      editorApplications
+      editorApplications,
+      registeredEditors
     }
   });
 });

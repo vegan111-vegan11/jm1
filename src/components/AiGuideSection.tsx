@@ -94,7 +94,7 @@ export default function AiGuideSection() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[650px] items-stretch">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:h-[700px] h-auto items-stretch">
       {/* Travel Planner Info Side Panel */}
       <div className="lg:col-span-4 bg-stone-50 border border-stone-100 p-6 rounded-3xl flex flex-col justify-between">
         <div className="space-y-6">

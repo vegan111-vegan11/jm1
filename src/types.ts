@@ -23,6 +23,7 @@ export interface Article {
   imageUrl: string;
   readTime: string;
   likes: number;
+  views?: number;
   createdAt: string;
   tags?: string[];
   places?: Place[];
