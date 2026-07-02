@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net - deny access to everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Since our backend applet accesses Firestore using the Client SDK from a server-side container without custom auth,
+    // we allow read and write access on the articles collection. This collection is only exposed via backend APIs.
+    match /articles/{articleId} {
+      allow read, write: if true;
+    }
+  }
+}

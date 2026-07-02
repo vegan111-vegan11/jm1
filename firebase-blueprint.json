@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "Article": {
+      "title": "Article",
+      "description": "Jeju Magazine Article entity with category, tags, and places.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "categoryKo": { "type": "string" },
+        "author": { "type": "string" },
+        "content": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "readTime": { "type": "string" },
+        "likes": { "type": "integer" },
+        "views": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "tags": { "type": "array" },
+        "places": { "type": "array" },
+        "comments": { "type": "array" }
+      },
+      "required": ["id", "title", "content", "author"]
+    }
+  },
+  "firestore": {
+    "/articles/{articleId}": {
+      "schema": "Article",
+      "description": "Exhaustive collection of editorial articles, features, and stories."
+    }
+  }
+}

@@ -3,6 +3,9 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc } from "firebase/firestore";
 
 dotenv.config();
 
@@ -21,6 +24,25 @@ const ai = new GoogleGenAI({
     },
   },
 });
+
+// Initialize Firebase Config from the dynamically generated config file
+let db: any = null;
+let useFirebase = false;
+
+try {
+  const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+  if (fs.existsSync(configPath)) {
+    const configData = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const firebaseApp = initializeApp(configData);
+    db = getFirestore(firebaseApp, configData.firestoreDatabaseId || undefined);
+    useFirebase = true;
+    console.log("[Jeju Magazine] Connected to Firebase Firestore with DB ID:", configData.firestoreDatabaseId);
+  } else {
+    console.log("[Jeju Magazine] firebase-applet-config.json not found, falling back to in-memory mocks.");
+  }
+} catch (error) {
+  console.error("[Jeju Magazine] Error initializing Firebase:", error);
+}
 
 // Mock Database / In-Memory Store
 let articles = [
@@ -153,13 +175,123 @@ let editorApplications: any[] = [
   }
 ];
 
+// Helper to handle Firestore errors in standard JSON format for AI Studio diagnostic systems
+enum OperationType {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LIST = "list",
+  GET = "get",
+  WRITE = "write",
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: any[];
+  };
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: null,
+      email: null,
+      emailVerified: null,
+      isAnonymous: null,
+      tenantId: null,
+      providerInfo: []
+    },
+    operationType,
+    path
+  };
+  console.error("[Jeju Magazine] Firestore Error Detail:", JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+// Helper to load articles from Firestore or fall back/seed
+async function getArticlesFromDb() {
+  if (!useFirebase || !db) {
+    return articles;
+  }
+  try {
+    const querySnapshot = await getDocs(collection(db, "articles"));
+    if (querySnapshot.empty) {
+      console.log("[Jeju Magazine] Firestore 'articles' collection is empty. Seeding defaults...");
+      // Seed default articles into Firestore
+      for (const art of articles) {
+        await setDoc(doc(db, "articles", art.id), art);
+      }
+      return articles;
+    } else {
+      const dbArticles: any[] = [];
+      querySnapshot.forEach((docSnapshot) => {
+        dbArticles.push({ id: docSnapshot.id, ...docSnapshot.data() });
+      });
+      // Sort by createdAt descending
+      dbArticles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      articles = dbArticles;
+      return dbArticles;
+    }
+  } catch (error) {
+    console.error("[Jeju Magazine] Error fetching from Firestore, falling back to in-memory:");
+    try {
+      handleFirestoreError(error, OperationType.GET, "articles");
+    } catch (e) {
+      // Swallowing after log to keep app responsive with local fallback
+    }
+    return articles;
+  }
+}
+
+async function saveArticleToDb(article: any) {
+  if (useFirebase && db) {
+    try {
+      await setDoc(doc(db, "articles", article.id), article);
+      console.log("[Jeju Magazine] Article saved to Firestore:", article.id);
+    } catch (error) {
+      console.error("[Jeju Magazine] Error saving article to Firestore:");
+      try {
+        handleFirestoreError(error, OperationType.WRITE, `articles/${article.id}`);
+      } catch (e) {
+        // Keep app running
+      }
+    }
+  }
+}
+
+async function deleteArticleFromDb(id: string) {
+  if (useFirebase && db) {
+    try {
+      await deleteDoc(doc(db, "articles", id));
+      console.log("[Jeju Magazine] Article deleted from Firestore:", id);
+    } catch (error) {
+      console.error("[Jeju Magazine] Error deleting article from Firestore:");
+      try {
+        handleFirestoreError(error, OperationType.DELETE, `articles/${id}`);
+      } catch (e) {
+        // Keep app running
+      }
+    }
+  }
+}
+
 // API: Get Articles
-app.get("/api/articles", (req, res) => {
-  res.json({ success: true, articles });
+app.get("/api/articles", async (req, res) => {
+  const currentArticles = await getArticlesFromDb();
+  res.json({ success: true, articles: currentArticles });
 });
 
 // API: Add Article (Journalist publish with tags and places)
-app.post("/api/articles", (req, res) => {
+app.post("/api/articles", async (req, res) => {
   try {
     const { title, category, categoryKo, author, content, excerpt, imageUrl, readTime, tags, places } = req.body;
     if (!title || !content || !author) {
@@ -185,6 +317,7 @@ app.post("/api/articles", (req, res) => {
     };
 
     articles.unshift(newArticle);
+    await saveArticleToDb(newArticle);
 
     // Increment journalist's article count if registered
     const editor = registeredEditors.find(e => e.name === author || author.includes(e.name) || e.name.includes(author));
@@ -199,7 +332,7 @@ app.post("/api/articles", (req, res) => {
 });
 
 // API: Update Article (Journalist edit with tags and places)
-app.put("/api/articles/:id", (req, res) => {
+app.put("/api/articles/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, category, categoryKo, author, content, excerpt, imageUrl, readTime, tags, places } = req.body;
@@ -222,6 +355,8 @@ app.put("/api/articles/:id", (req, res) => {
       tags: tags || articles[idx].tags || [],
       places: places || articles[idx].places || []
     };
+
+    await saveArticleToDb(articles[idx]);
 
     res.json({ success: true, article: articles[idx] });
   } catch (error: any) {
@@ -306,6 +441,8 @@ app.post("/api/articles/:id/comments", async (req, res) => {
       });
     }
 
+    await saveArticleToDb(articles[articleIndex]);
+
     res.json({ success: true, comments: articles[articleIndex].comments });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
@@ -363,7 +500,7 @@ JSON schema:
 });
 
 // API: Delete Article (Admin)
-app.delete("/api/articles/:id", (req, res) => {
+app.delete("/api/articles/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const initialLen = articles.length;
@@ -372,6 +509,7 @@ app.delete("/api/articles/:id", (req, res) => {
     if (articles.length === initialLen) {
       return res.status(404).json({ success: false, message: "Article not found." });
     }
+    await deleteArticleFromDb(id);
     res.json({ success: true, message: "Article deleted successfully." });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
@@ -953,6 +1091,14 @@ ${knowledgeContext}
 
 // Vite Middleware & SPA serving
 const startServer = async () => {
+  // Load and seed articles from Firestore on startup
+  try {
+    await getArticlesFromDb();
+    console.log("[Jeju Magazine] Articles successfully loaded from DB on startup. Total count:", articles.length);
+  } catch (err) {
+    console.error("[Jeju Magazine] Error loading articles on startup:", err);
+  }
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

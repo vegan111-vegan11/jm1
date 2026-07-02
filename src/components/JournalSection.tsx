@@ -1,7 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Article, Comment, Place, User } from "../types";
 import { Play, Pause, Volume2, Sparkles, Clock, Heart, Share2, BookOpen, ChevronRight, X, AlertCircle, Search, Hash, MapPin, Languages, MessageCircle, Send, SendHorizontal, AlertTriangle, Loader2, Sparkle } from "lucide-react";
+
+// Safe date formatter helper for robust Firebase & Client-side data integration
+const formatDate = (dateVal: any): string => {
+  if (!dateVal) return "방금 전";
+  try {
+    // If it is a Firestore Timestamp object with seconds
+    if (typeof dateVal === "object") {
+      const seconds = dateVal.seconds ?? dateVal._seconds;
+      if (typeof seconds === "number") {
+        return new Date(seconds * 1000).toLocaleDateString("ko-KR");
+      }
+    }
+    const parsed = new Date(dateVal);
+    if (isNaN(parsed.getTime())) {
+      return "방금 전";
+    }
+    return parsed.toLocaleDateString("ko-KR");
+  } catch (e) {
+    return "방금 전";
+  }
+};
+
+const formatTime = (dateVal: any): string => {
+  if (!dateVal) return "방금 전";
+  try {
+    if (typeof dateVal === "object") {
+      const seconds = dateVal.seconds ?? dateVal._seconds;
+      if (typeof seconds === "number") {
+        return new Date(seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+    const parsed = new Date(dateVal);
+    if (isNaN(parsed.getTime())) {
+      return "방금 전";
+    }
+    return parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return "방금 전";
+  }
+};
 
 interface JournalSectionProps {
   articles: Article[];
@@ -13,6 +53,19 @@ interface JournalSectionProps {
 
 export default function JournalSection({ articles, onLikeArticle, onKakaoShare, user, refreshArticles }: JournalSectionProps) {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [scrollPercent, setScrollPercent] = useState(0);
+
+  const handleModalScroll = () => {
+    if (modalRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = modalRef.current;
+      const total = scrollHeight - clientHeight;
+      if (total > 0) {
+        setScrollPercent((scrollTop / total) * 100);
+      }
+    }
+  };
+
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -93,6 +146,7 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
     setTranslatedTitle(null);
     setTranslatedContent(null);
     setTtsError(null);
+    setScrollPercent(0);
     stopAudio();
   };
 
@@ -336,7 +390,7 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
                 <div className="text-xs">
                   <p className="font-semibold text-stone-200">{featuredArticle.author}</p>
                   <p className="text-stone-500 font-mono">
-                    {new Date(featuredArticle.createdAt).toLocaleDateString("ko-KR")}
+                    {formatDate(featuredArticle.createdAt)}
                   </p>
                 </div>
                 <button
@@ -447,7 +501,7 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
                   )}
 
                   <div className="flex items-center justify-between text-[11px] text-stone-400 font-mono pt-1">
-                    <span>{new Date(article.createdAt).toLocaleDateString("ko-KR")}</span>
+                    <span>{formatDate(article.createdAt)}</span>
                     <div className="flex items-center space-x-3 text-stone-500 font-bold">
                       <button
                         onClick={(e) => {
@@ -489,12 +543,22 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
             className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-md flex items-center justify-center p-3 lg:p-10"
           >
             <motion.div
+              ref={modalRef}
+              onScroll={handleModalScroll}
               initial={{ scale: 0.96, y: 25 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.96, y: 25 }}
-              className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl relative"
+              className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl relative scrollbar-none"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Luxury Sticky Scroll Progress Bar */}
+              <div className="sticky top-0 left-0 right-0 h-1.5 bg-stone-100 z-30">
+                <div 
+                  className="h-full bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-75" 
+                  style={{ width: `${scrollPercent}%` }}
+                />
+              </div>
+
               {/* Floating Close Button */}
               <button
                 onClick={handleCloseArticle}
@@ -580,7 +644,7 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
                     <div>
                       <h4 className="font-bold text-sm text-stone-800">{selectedArticle.author} 에디터</h4>
                       <div className="flex items-center space-x-2 text-xs text-stone-400 font-mono mt-0.5">
-                        <span>{new Date(selectedArticle.createdAt).toLocaleDateString("ko-KR")}</span>
+                        <span>{formatDate(selectedArticle.createdAt)}</span>
                         <span>•</span>
                         <span>{selectedArticle.readTime} 읽기</span>
                       </div>
@@ -786,7 +850,7 @@ export default function JournalSection({ articles, onLikeArticle, onKakaoShare, 
                                   {com.author}
                                 </span>
                                 <span className="text-[9px] text-stone-400 font-mono">
-                                  {new Date(com.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {formatTime(com.createdAt)}
                                 </span>
                               </div>
                               <p className="text-stone-600 leading-relaxed font-sans">{com.text}</p>

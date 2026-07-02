@@ -4,6 +4,42 @@ import { Article, AdInquiry, EditorApplication } from "../types";
 import { ShieldCheck, Check, X, Trash2, Calendar, FileText, UserCheck, BarChart3, PieChart as PieIcon, RefreshCw, AlertCircle, Sparkles, Edit3, Search, Users, Award, Eye, MessageSquare, Percent, Sparkle } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie, Legend } from "recharts";
 
+// Safe date and timestamp helpers for robust Firestore integration
+const getTimestamp = (dateVal: any): number => {
+  if (!dateVal) return 0;
+  try {
+    if (typeof dateVal === "object") {
+      const seconds = dateVal.seconds ?? dateVal._seconds;
+      if (typeof seconds === "number") {
+        return seconds * 1000;
+      }
+    }
+    const parsed = new Date(dateVal);
+    return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+  } catch (e) {
+    return 0;
+  }
+};
+
+const formatDate = (dateVal: any): string => {
+  if (!dateVal) return "방금 전";
+  try {
+    if (typeof dateVal === "object") {
+      const seconds = dateVal.seconds ?? dateVal._seconds;
+      if (typeof seconds === "number") {
+        return new Date(seconds * 1000).toLocaleDateString();
+      }
+    }
+    const parsed = new Date(dateVal);
+    if (isNaN(parsed.getTime())) {
+      return "방금 전";
+    }
+    return parsed.toLocaleDateString();
+  } catch (e) {
+    return "방금 전";
+  }
+};
+
 interface AdminSectionProps {
   stats: {
     articlesCount: number;
@@ -276,7 +312,7 @@ export default function AdminSection({ stats, refreshStats, articles, refreshArt
         return (b.views || 0) - (a.views || 0);
       }
       // default "latest"
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return getTimestamp(b.createdAt) - getTimestamp(a.createdAt);
     });
 
   // 3. Journalist contribution statistics data
@@ -450,7 +486,7 @@ export default function AdminSection({ stats, refreshStats, articles, refreshArt
                           <span>•</span>
                           <span>추천수: {art.likes}개</span>
                           <span>•</span>
-                          <span>등록: {new Date(art.createdAt).toLocaleDateString()}</span>
+                          <span>등록: {formatDate(art.createdAt)}</span>
                         </div>
                         {art.tags && art.tags.length > 0 && (
                           <div className="flex items-center gap-1 mt-1 flex-wrap">
